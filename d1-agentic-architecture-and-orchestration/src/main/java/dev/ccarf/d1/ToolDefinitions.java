@@ -45,7 +45,7 @@ public class ToolDefinitions {
         .build();
   }
 
-  private static Tool getWebSearch() {
+  static Tool getWebSearch() {
     Tool webSearch = Tool.builder()
         .name("web_search")
         .description("Searches the web for a query and returns mock results (stub - no real network call).")
@@ -60,7 +60,7 @@ public class ToolDefinitions {
     return webSearch;
   }
 
-  private static Tool getCalculator() {
+  static Tool getCalculator() {
     Tool calculator = Tool.builder()
         .name("calculator")
         .description("Evaluates a basic arithmetic expression and returns the numeric result.")
