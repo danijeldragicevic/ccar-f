@@ -4,6 +4,7 @@ Hands-on exercises in Java, written while studying for Anthropic's
 **Claude Certified Architect – Foundations** exam.
 
 ![Under Construction](https://img.shields.io/badge/STATUS-UNDER%20CONSTRUCTION-FFD700?style=for-the-badge&labelColor=000000)
+[![Tests](https://github.com/danijeldragicevic/ccar-f/actions/workflows/tests.yml/badge.svg)](https://github.com/danijeldragicevic/ccar-f/actions/workflows/tests.yml)
 
 ## Prerequisites
 
