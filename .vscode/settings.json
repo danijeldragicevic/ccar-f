@@ -1,0 +1,10 @@
+{
+    // Re-sync the Java project model automatically whenever a pom.xml changes
+    "java.configuration.updateBuildConfiguration": "automatic",
+
+    // Auto-imports: add/remove imports on save, and prefer a single
+    // unambiguous import over prompting when completing a type
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "always"
+    }
+}
