@@ -21,14 +21,6 @@ only setup is one exported variable:
 export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
-Get a key at
-[console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys).
-Then open a new shell and confirm it's visible:
-
-```bash
-env | grep ANTHROPIC_API_KEY
-```
-
 ## Build and run
 
 ```bash
@@ -45,6 +37,19 @@ first. Add `-am` to build it in the same reactor while editing both:
 
 ```bash
 mvn -q -pl d1-agentic-architecture-and-orchestration -am compile
+```
+
+## Test
+
+```bash
+# run every test in every module
+mvn test
+
+# run tests for one module only
+mvn -pl common test
+
+# run a single test class
+mvn -pl common test -Dtest=ConfigTest
 ```
 
 ## Structure

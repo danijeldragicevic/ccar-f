@@ -12,4 +12,12 @@
 
   <artifactId>common</artifactId>
   <name>Common - shared configuration for every domain module</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>
