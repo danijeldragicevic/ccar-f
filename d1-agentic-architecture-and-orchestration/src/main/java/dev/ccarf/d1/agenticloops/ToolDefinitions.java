@@ -10,7 +10,7 @@ import com.anthropic.models.messages.Tool;
 import dev.ccarf.common.Config;
 
 /**
- * Exercise 1.1
+ * Exercise 1.1.1
  * Set up a Claude API client with two tools: 
  * - a calculator tool (accepts expression, returns result) and 
  * - a web search stub (accepts query, returns mock results)

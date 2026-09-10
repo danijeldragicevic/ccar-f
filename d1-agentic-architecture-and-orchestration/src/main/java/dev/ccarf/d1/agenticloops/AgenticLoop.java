@@ -13,7 +13,7 @@ import com.anthropic.models.messages.StopReason;
 import dev.ccarf.common.Config;
 
 /**
- * Exercise 1.2
+ * Exercise 1.1.2
  * Implement the agentic loop that sends requests to Claude
  * and inspects stop_reason after each response
  */

@@ -21,7 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import dev.ccarf.common.Config;
 
 /**
- * Exercise 1.4
+ * Exercise 1.1.4
  * Handle the end_turn stop_reason by extracting and returning the final response.
  */
 public class FinalResponseLoop {

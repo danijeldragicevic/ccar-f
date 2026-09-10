@@ -19,7 +19,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import dev.ccarf.common.Config;
 
 /**
- * Exercise 1.3
+ * Exercise 1.1.3
  * Handle the tool_use stop_reason by executing the requested tool, 
  * creating a tool result message, and appending it to conversation history.
  */
