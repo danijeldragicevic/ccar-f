@@ -19,11 +19,11 @@ import com.anthropic.services.blocking.messages.BatchService;
 
 // Minimal implementation of MessageService that only implements the create() method,
 // returning the given responses in order and recording the params it was called with.
-final class RecordingMessageService implements MessageService {
+final class StubMessageService implements MessageService {
     final List<MessageCreateParams> requests = new ArrayList<>();
     private final Deque<Message> responses;
 
-    RecordingMessageService(Message... responses) {
+    StubMessageService(Message... responses) {
         this.responses = new ArrayDeque<>(List.of(responses));
     }
 

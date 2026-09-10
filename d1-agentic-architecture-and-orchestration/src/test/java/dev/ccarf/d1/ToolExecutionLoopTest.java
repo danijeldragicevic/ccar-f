@@ -35,7 +35,7 @@ class ToolExecutionLoopTest {
     @Test
     void returnsFirstResponseWhenStopReasonIsNotToolUse() {
         Message endTurn = messageWithStopReason(StopReason.END_TURN);
-        RecordingMessageService messageService = new RecordingMessageService(endTurn);
+        StubMessageService messageService = new StubMessageService(endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         Message result = ToolExecutionLoop.runLoop(client, "Say hello");
@@ -46,8 +46,8 @@ class ToolExecutionLoopTest {
 
     @Test
     void sendsUserMessageAsFirstTurn() {
-        RecordingMessageService messageService =
-                new RecordingMessageService(messageWithStopReason(StopReason.END_TURN));
+        StubMessageService messageService =
+                new StubMessageService(messageWithStopReason(StopReason.END_TURN));
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         ToolExecutionLoop.runLoop(client, "Say hello");
@@ -64,7 +64,7 @@ class ToolExecutionLoopTest {
         Message toolUse = messageWithToolUse(
                 toolUseBlock("call_1", "calculator", Map.of("expression", "2 + 3")));
         Message endTurn = messageWithStopReason(StopReason.END_TURN);
-        RecordingMessageService messageService = new RecordingMessageService(toolUse, endTurn);
+        StubMessageService messageService = new StubMessageService(toolUse, endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         Message result = ToolExecutionLoop.runLoop(client, "Use a tool");
@@ -78,7 +78,7 @@ class ToolExecutionLoopTest {
         Message[] allToolUse = new Message[MAX_ITERATIONS];
         Arrays.fill(allToolUse, messageWithToolUse(
                 toolUseBlock("call_1", "calculator", Map.of("expression", "1 + 1"))));
-        RecordingMessageService messageService = new RecordingMessageService(allToolUse);
+        StubMessageService messageService = new StubMessageService(allToolUse);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         assertThrows(IllegalStateException.class,
@@ -91,7 +91,7 @@ class ToolExecutionLoopTest {
         Message toolUse = messageWithToolUse(
                 toolUseBlock("call_1", "calculator", Map.of("expression", "12 * (3 + 4)")));
         Message endTurn = messageWithStopReason(StopReason.END_TURN);
-        RecordingMessageService messageService = new RecordingMessageService(toolUse, endTurn);
+        StubMessageService messageService = new StubMessageService(toolUse, endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         ToolExecutionLoop.runLoop(client, "What is 12 * (3 + 4)?");
@@ -108,7 +108,7 @@ class ToolExecutionLoopTest {
         Message toolUse = messageWithToolUse(
                 toolUseBlock("call_1", "calculator", Map.of("expression", "10 / 4")));
         Message endTurn = messageWithStopReason(StopReason.END_TURN);
-        RecordingMessageService messageService = new RecordingMessageService(toolUse, endTurn);
+        StubMessageService messageService = new StubMessageService(toolUse, endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         ToolExecutionLoop.runLoop(client, "What is 10 / 4?");
@@ -123,7 +123,7 @@ class ToolExecutionLoopTest {
         Message toolUse = messageWithToolUse(
                 toolUseBlock("call_1", "web_search", Map.of("query", "latest AI news")));
         Message endTurn = messageWithStopReason(StopReason.END_TURN);
-        RecordingMessageService messageService = new RecordingMessageService(toolUse, endTurn);
+        StubMessageService messageService = new StubMessageService(toolUse, endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         ToolExecutionLoop.runLoop(client, "Search for the latest AI news");
@@ -142,7 +142,7 @@ class ToolExecutionLoopTest {
                 toolUseBlock("call_1", "calculator", Map.of("expression", "2 + 2")),
                 toolUseBlock("call_2", "web_search", Map.of("query", "AI news")));
         Message endTurn = messageWithStopReason(StopReason.END_TURN);
-        RecordingMessageService messageService = new RecordingMessageService(toolUse, endTurn);
+        StubMessageService messageService = new StubMessageService(toolUse, endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         ToolExecutionLoop.runLoop(client, "Do both things");
@@ -164,7 +164,7 @@ class ToolExecutionLoopTest {
     void throwsForUnknownToolName() {
         Message toolUse = messageWithToolUse(
                 toolUseBlock("call_1", "unknown_tool", Map.of("foo", "bar")));
-        RecordingMessageService messageService = new RecordingMessageService(toolUse);
+        StubMessageService messageService = new StubMessageService(toolUse);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         assertThrows(IllegalArgumentException.class,
@@ -175,7 +175,7 @@ class ToolExecutionLoopTest {
     void throwsForMalformedArithmeticExpression() {
         Message toolUse = messageWithToolUse(
                 toolUseBlock("call_1", "calculator", Map.of("expression", "2 + (3")));
-        RecordingMessageService messageService = new RecordingMessageService(toolUse);
+        StubMessageService messageService = new StubMessageService(toolUse);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         assertThrows(IllegalArgumentException.class,

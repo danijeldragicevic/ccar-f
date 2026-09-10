@@ -29,7 +29,7 @@ class AgenticLoopTest {
     @Test
     void returnsFirstResponseWhenStopReasonIsNotToolUse() {
         Message endTurn = messageWithStopReason(StopReason.END_TURN);
-        RecordingMessageService messageService = new RecordingMessageService(endTurn);
+        StubMessageService messageService = new StubMessageService(endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         Message result = AgenticLoop.runLoop(client, "Say hello");
@@ -40,8 +40,8 @@ class AgenticLoopTest {
 
     @Test
     void sendsUserMessageAsFirstTurn() {
-        RecordingMessageService messageService =
-                new RecordingMessageService(messageWithStopReason(StopReason.END_TURN));
+        StubMessageService messageService =
+                new StubMessageService(messageWithStopReason(StopReason.END_TURN));
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         AgenticLoop.runLoop(client, "Say hello");
@@ -57,7 +57,7 @@ class AgenticLoopTest {
     void continuesLoopingWhileStopReasonIsToolUse() {
         Message toolUse = messageWithStopReason(StopReason.TOOL_USE);
         Message endTurn = messageWithStopReason(StopReason.END_TURN);
-        RecordingMessageService messageService = new RecordingMessageService(toolUse, endTurn);
+        StubMessageService messageService = new StubMessageService(toolUse, endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         Message result = AgenticLoop.runLoop(client, "Use a tool");
@@ -70,7 +70,7 @@ class AgenticLoopTest {
     void throwsAfterExceedingMaxToolUseIterations() {
         Message[] allToolUse = new Message[MAX_ITERATIONS];
         Arrays.fill(allToolUse, messageWithStopReason(StopReason.TOOL_USE));
-        RecordingMessageService messageService = new RecordingMessageService(allToolUse);
+        StubMessageService messageService = new StubMessageService(allToolUse);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         assertThrows(IllegalStateException.class, () -> AgenticLoop.runLoop(client, "Loop forever"));
