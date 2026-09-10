@@ -1,4 +1,4 @@
-package dev.ccarf.d1;
+package dev.ccarf.d1.agenticloops;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

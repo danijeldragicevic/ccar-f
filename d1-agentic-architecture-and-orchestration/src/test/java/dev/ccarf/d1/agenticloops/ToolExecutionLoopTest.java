@@ -1,6 +1,7 @@
-package dev.ccarf.d1;
+package dev.ccarf.d1.agenticloops;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
@@ -27,41 +28,29 @@ import com.anthropic.models.messages.ToolResultBlockParam;
 import com.anthropic.models.messages.ToolUseBlock;
 import com.anthropic.models.messages.Usage;
 
-class FinalResponseLoopTest {
+class ToolExecutionLoopTest {
 
     private static final int MAX_ITERATIONS = 5;
 
     @Test
-    void returnsExtractedTextWhenStopReasonIsNotToolUse() {
-        Message endTurn = messageWithText(StopReason.END_TURN, "The answer is 84.");
+    void returnsFirstResponseWhenStopReasonIsNotToolUse() {
+        Message endTurn = messageWithStopReason(StopReason.END_TURN);
         StubMessageService messageService = new StubMessageService(endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
-        String result = FinalResponseLoop.runLoop(client, "What is 12 * 7?");
+        Message result = ToolExecutionLoop.runLoop(client, "Say hello");
 
-        assertEquals("The answer is 84.", result);
+        assertSame(endTurn, result);
         assertEquals(1, messageService.requests.size());
-    }
-
-    @Test
-    void joinsMultipleTextBlocksWithNewline() {
-        Message endTurn =
-                messageWithText(StopReason.END_TURN, "First sentence.", "Second sentence.");
-        StubMessageService messageService = new StubMessageService(endTurn);
-        AnthropicClient client = new StubAnthropicClient(messageService);
-
-        String result = FinalResponseLoop.runLoop(client, "Say two things");
-
-        assertEquals("First sentence.\nSecond sentence.", result);
     }
 
     @Test
     void sendsUserMessageAsFirstTurn() {
         StubMessageService messageService =
-                new StubMessageService(messageWithText(StopReason.END_TURN, "hi"));
+                new StubMessageService(messageWithStopReason(StopReason.END_TURN));
         AnthropicClient client = new StubAnthropicClient(messageService);
 
-        FinalResponseLoop.runLoop(client, "Say hello");
+        ToolExecutionLoop.runLoop(client, "Say hello");
 
         MessageCreateParams sentParams = messageService.requests.get(0);
         assertEquals(1, sentParams.messages().size());
@@ -74,13 +63,13 @@ class FinalResponseLoopTest {
     void continuesLoopingWhileStopReasonIsToolUse() {
         Message toolUse = messageWithToolUse(
                 toolUseBlock("call_1", "calculator", Map.of("expression", "2 + 3")));
-        Message endTurn = messageWithText(StopReason.END_TURN, "It's 5.");
+        Message endTurn = messageWithStopReason(StopReason.END_TURN);
         StubMessageService messageService = new StubMessageService(toolUse, endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
-        String result = FinalResponseLoop.runLoop(client, "Use a tool");
+        Message result = ToolExecutionLoop.runLoop(client, "Use a tool");
 
-        assertEquals("It's 5.", result);
+        assertSame(endTurn, result);
         assertEquals(2, messageService.requests.size());
     }
 
@@ -93,21 +82,20 @@ class FinalResponseLoopTest {
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         assertThrows(IllegalStateException.class,
-                () -> FinalResponseLoop.runLoop(client, "Loop forever"));
+                () -> ToolExecutionLoop.runLoop(client, "Loop forever"));
         assertEquals(MAX_ITERATIONS, messageService.requests.size());
     }
 
     @Test
-    void sendsCalculatorResultAsToolResultBeforeReturningFinalText() {
+    void sendsCalculatorResultAsToolResultForNextTurn() {
         Message toolUse = messageWithToolUse(
                 toolUseBlock("call_1", "calculator", Map.of("expression", "12 * (3 + 4)")));
-        Message endTurn = messageWithText(StopReason.END_TURN, "The answer is 84.");
+        Message endTurn = messageWithStopReason(StopReason.END_TURN);
         StubMessageService messageService = new StubMessageService(toolUse, endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
-        String result = FinalResponseLoop.runLoop(client, "What is 12 * (3 + 4)?");
+        ToolExecutionLoop.runLoop(client, "What is 12 * (3 + 4)?");
 
-        assertEquals("The answer is 84.", result);
         List<ContentBlockParam> toolResults = toolResultBlocks(messageService.requests.get(1));
         assertEquals(1, toolResults.size());
         ToolResultBlockParam toolResult = toolResults.get(0).toolResult().orElseThrow();
@@ -116,20 +104,60 @@ class FinalResponseLoopTest {
     }
 
     @Test
-    void sendsWebSearchMockResultAsToolResultBeforeReturningFinalText() {
+    void evaluatesDivisionAndFormatsNonIntegerResult() {
         Message toolUse = messageWithToolUse(
-                toolUseBlock("call_1", "web_search", Map.of("query", "latest AI news")));
-        Message endTurn = messageWithText(StopReason.END_TURN, "Here's a summary.");
+                toolUseBlock("call_1", "calculator", Map.of("expression", "10 / 4")));
+        Message endTurn = messageWithStopReason(StopReason.END_TURN);
         StubMessageService messageService = new StubMessageService(toolUse, endTurn);
         AnthropicClient client = new StubAnthropicClient(messageService);
 
-        String result = FinalResponseLoop.runLoop(client, "Search for the latest AI news");
+        ToolExecutionLoop.runLoop(client, "What is 10 / 4?");
 
-        assertEquals("Here's a summary.", result);
         List<ContentBlockParam> toolResults = toolResultBlocks(messageService.requests.get(1));
+        assertEquals("2.5", toolResults.get(0).toolResult().orElseThrow()
+                .content().orElseThrow().string().orElseThrow());
+    }
+
+    @Test
+    void sendsWebSearchMockResultAsToolResultForNextTurn() {
+        Message toolUse = messageWithToolUse(
+                toolUseBlock("call_1", "web_search", Map.of("query", "latest AI news")));
+        Message endTurn = messageWithStopReason(StopReason.END_TURN);
+        StubMessageService messageService = new StubMessageService(toolUse, endTurn);
+        AnthropicClient client = new StubAnthropicClient(messageService);
+
+        ToolExecutionLoop.runLoop(client, "Search for the latest AI news");
+
+        List<ContentBlockParam> toolResults = toolResultBlocks(messageService.requests.get(1));
+        assertEquals(1, toolResults.size());
         ToolResultBlockParam toolResult = toolResults.get(0).toolResult().orElseThrow();
+        assertEquals("call_1", toolResult.toolUseId());
         assertEquals("Mock search results for \"latest AI news\" (stub - no real network call).",
                 toolResult.content().orElseThrow().string().orElseThrow());
+    }
+
+    @Test
+    void executesMultipleToolCallsFromASingleResponseInOrder() {
+        Message toolUse = messageWithToolUse(
+                toolUseBlock("call_1", "calculator", Map.of("expression", "2 + 2")),
+                toolUseBlock("call_2", "web_search", Map.of("query", "AI news")));
+        Message endTurn = messageWithStopReason(StopReason.END_TURN);
+        StubMessageService messageService = new StubMessageService(toolUse, endTurn);
+        AnthropicClient client = new StubAnthropicClient(messageService);
+
+        ToolExecutionLoop.runLoop(client, "Do both things");
+
+        List<ContentBlockParam> toolResults = toolResultBlocks(messageService.requests.get(1));
+        assertEquals(2, toolResults.size());
+
+        ToolResultBlockParam first = toolResults.get(0).toolResult().orElseThrow();
+        assertEquals("call_1", first.toolUseId());
+        assertEquals("4", first.content().orElseThrow().string().orElseThrow());
+
+        ToolResultBlockParam second = toolResults.get(1).toolResult().orElseThrow();
+        assertEquals("call_2", second.toolUseId());
+        assertEquals("Mock search results for \"AI news\" (stub - no real network call).",
+                second.content().orElseThrow().string().orElseThrow());
     }
 
     @Test
@@ -140,7 +168,7 @@ class FinalResponseLoopTest {
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         assertThrows(IllegalArgumentException.class,
-                () -> FinalResponseLoop.runLoop(client, "Use an unknown tool"));
+                () -> ToolExecutionLoop.runLoop(client, "Use an unknown tool"));
     }
 
     @Test
@@ -151,7 +179,7 @@ class FinalResponseLoopTest {
         AnthropicClient client = new StubAnthropicClient(messageService);
 
         assertThrows(IllegalArgumentException.class,
-                () -> FinalResponseLoop.runLoop(client, "What is 2 + (3?"));
+                () -> ToolExecutionLoop.runLoop(client, "What is 2 + (3?"));
     }
 
     // Extracts the tool_result blocks carried by the last message of a captured request.
@@ -186,15 +214,12 @@ class FinalResponseLoopTest {
                 .build();
     }
 
-    // Helper method to create a Message with a given StopReason and one text block per string.
-    private static Message messageWithText(StopReason stopReason, String... texts) {
-        List<ContentBlock> content = Arrays.stream(texts)
-                .map(text -> ContentBlock.ofText(
-                        TextBlock.builder().text(text).citations(List.of()).build()))
-                .toList();
+    // Helper method to create a Message with a specific StopReason
+    private static Message messageWithStopReason(StopReason stopReason) {
         return Message.builder()
                 .id("msg_test")
-                .content(content)
+                .content(List.of(ContentBlock.ofText(
+                        TextBlock.builder().text("hi").citations(List.of()).build())))
                 .model(Model.of("claude-test-model"))
                 .stopReason(stopReason)
                 .stopSequence((String) null)

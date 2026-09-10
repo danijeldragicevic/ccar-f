@@ -40,7 +40,7 @@ mvn -q install -DskipTests
 # run a class with a main() — one example below; each module accumulates more
 # exercises over time, browse its src/main/java tree for the full list
 mvn -q -pl d1-agentic-architecture-and-orchestration exec:java \
-    -Dexec.mainClass=dev.ccarf.d1.ToolDefinitions
+    -Dexec.mainClass=dev.ccarf.d1.agenticloops.ToolDefinitions
 ```
 
 `common` is a `SNAPSHOT` sibling, so a single-module build needs it installed

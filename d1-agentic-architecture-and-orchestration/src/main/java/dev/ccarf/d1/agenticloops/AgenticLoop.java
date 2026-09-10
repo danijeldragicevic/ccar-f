@@ -1,4 +1,4 @@
-package dev.ccarf.d1;
+package dev.ccarf.d1.agenticloops;
 
 import java.util.ArrayList;
 import java.util.List;

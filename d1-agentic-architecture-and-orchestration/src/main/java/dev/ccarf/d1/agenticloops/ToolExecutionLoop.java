@@ -1,9 +1,8 @@
-package dev.ccarf.d1;
+package dev.ccarf.d1.agenticloops;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import com.anthropic.client.AnthropicClient;
 import com.anthropic.client.okhttp.AnthropicOkHttpClient;
@@ -13,7 +12,6 @@ import com.anthropic.models.messages.Message;
 import com.anthropic.models.messages.MessageCreateParams;
 import com.anthropic.models.messages.MessageParam;
 import com.anthropic.models.messages.StopReason;
-import com.anthropic.models.messages.TextBlock;
 import com.anthropic.models.messages.ToolResultBlockParam;
 import com.anthropic.models.messages.ToolUseBlock;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -21,10 +19,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import dev.ccarf.common.Config;
 
 /**
- * Exercise 1.4
- * Handle the end_turn stop_reason by extracting and returning the final response.
+ * Exercise 1.3
+ * Handle the tool_use stop_reason by executing the requested tool, 
+ * creating a tool result message, and appending it to conversation history.
  */
-public class FinalResponseLoop {
+public class ToolExecutionLoop {
 
   private static final int MAX_ITERATIONS = 5;
 
@@ -32,23 +31,24 @@ public class FinalResponseLoop {
 
     AnthropicClient client = AnthropicOkHttpClient.fromEnv();
 
-    String finalResponse = runLoop(client,
-        "What is 12 * (3 + 4)? Also search for the latest news about AI and summarize into one short sentence.");
-    System.out.println(finalResponse);
+    Message response = runLoop(client, "What is 12 * (3 + 4)? Also search for the latest news about AI and summarize into one short sentence.");
+    response.content().stream()
+        .flatMap(block -> block.text().stream())
+        .forEach(textBlock -> System.out.println(textBlock.text()));
   }
 
   /**
    * Sends userMessage to Claude and inspects the stop_reason of each response.
    * While it is tool_use, executes the requested tool(s), appends the assistant
    * turn and a user turn carrying the tool_result block(s) to the conversation,
-   * and sends the request again. Once stop_reason is end_turn, extracts and
-   * returns the text content of the final response.
+   * and sends the request again. Once stop_reason is anything else (e.g.
+   * end_turn), returns the final response.
    *
    * @param client      the Anthropic client to send requests through
    * @param userMessage the user turn to send
-   * @return the text content of the final response once stop_reason is end_turn
+   * @return the final Message once stop_reason is no longer tool_use
    */
-  static String runLoop(AnthropicClient client, String userMessage) {
+  static Message runLoop(AnthropicClient client, String userMessage) {
     List<MessageParam> messages = new ArrayList<>();
     messages.add(MessageParam.builder()
         .role(MessageParam.Role.USER)
@@ -69,7 +69,7 @@ public class FinalResponseLoop {
       System.out.println("[turn " + iteration + "] stop_reason: " + stopReason);
 
       if (!stopReason.equals(StopReason.TOOL_USE)) {
-        return extractFinalResponse(response);
+        return response;
       }
 
       messages.add(response.toParam());
@@ -78,20 +78,6 @@ public class FinalResponseLoop {
 
     throw new IllegalStateException(
         "Exceeded " + MAX_ITERATIONS + " tool-use iterations without reaching end_turn");
-  }
-
-  /**
-   * Extracts the text content of the final response, joining every text block
-   * in order.
-   *
-   * @param response the assistant response whose stop_reason was end_turn
-   * @return the concatenated text of the response
-   */
-  private static String extractFinalResponse(Message response) {
-    return response.content().stream()
-        .flatMap(block -> block.text().stream())
-        .map(TextBlock::text)
-        .collect(Collectors.joining("\n"));
   }
 
   /**
