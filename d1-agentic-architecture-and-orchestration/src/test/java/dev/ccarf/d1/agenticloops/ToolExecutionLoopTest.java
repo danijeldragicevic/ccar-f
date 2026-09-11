@@ -87,6 +87,16 @@ class ToolExecutionLoopTest {
     }
 
     @Test
+    void throwsForUnhandledStopReason() {
+        StubMessageService messageService =
+                new StubMessageService(messageWithStopReason(StopReason.MAX_TOKENS));
+        AnthropicClient client = new StubAnthropicClient(messageService);
+
+        assertThrows(IllegalStateException.class,
+                () -> ToolExecutionLoop.runLoop(client, "Say hello"));
+    }
+
+    @Test
     void sendsCalculatorResultAsToolResultForNextTurn() {
         Message toolUse = messageWithToolUse(
                 toolUseBlock("call_1", "calculator", Map.of("expression", "12 * (3 + 4)")));

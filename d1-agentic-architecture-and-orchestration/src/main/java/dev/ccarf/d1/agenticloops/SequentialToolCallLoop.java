@@ -44,7 +44,9 @@ public class SequentialToolCallLoop {
    * While it is tool_use, executes the requested tool(s), appends the assistant
    * turn and a user turn carrying the tool_result block(s) to the conversation,
    * and sends the request again. Once stop_reason is end_turn, extracts and
-   * returns the text content of the final response.
+   * returns the text content of the final response. Any other stop_reason
+   * (max_tokens, refusal, pause_turn, stop_sequence) is treated as unhandled
+   * rather than silently returned as if it were a normal final answer.
    *
    * @param client      the Anthropic client to send requests through
    * @param userMessage the user turn to send
@@ -70,8 +72,12 @@ public class SequentialToolCallLoop {
       StopReason stopReason = response.stopReason().get();
       System.out.println("[turn " + iteration + "] stop_reason: " + stopReason);
 
-      if (!stopReason.equals(StopReason.TOOL_USE)) {
+      if (stopReason.equals(StopReason.END_TURN)) {
         return extractFinalResponse(response);
+      }
+
+      if (!stopReason.equals(StopReason.TOOL_USE)) {
+        throw new IllegalStateException("Unhandled stop_reason: " + stopReason);
       }
 
       messages.add(response.toParam());

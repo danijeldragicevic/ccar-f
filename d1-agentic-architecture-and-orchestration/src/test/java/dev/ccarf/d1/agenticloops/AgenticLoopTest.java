@@ -77,6 +77,15 @@ class AgenticLoopTest {
         assertEquals(MAX_ITERATIONS, messageService.requests.size());
     }
 
+    @Test
+    void throwsForUnhandledStopReason() {
+        StubMessageService messageService =
+                new StubMessageService(messageWithStopReason(StopReason.MAX_TOKENS));
+        AnthropicClient client = new StubAnthropicClient(messageService);
+
+        assertThrows(IllegalStateException.class, () -> AgenticLoop.runLoop(client, "Say hello"));
+    }
+
     // Helper method to create a Message with a specific StopReason
     private static Message messageWithStopReason(StopReason stopReason) {
         return Message.builder()

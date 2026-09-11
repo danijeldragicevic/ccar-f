@@ -144,6 +144,16 @@ class FinalResponseLoopTest {
     }
 
     @Test
+    void throwsForUnhandledStopReason() {
+        StubMessageService messageService =
+                new StubMessageService(messageWithText(StopReason.MAX_TOKENS, "truncated..."));
+        AnthropicClient client = new StubAnthropicClient(messageService);
+
+        assertThrows(IllegalStateException.class,
+                () -> FinalResponseLoop.runLoop(client, "Say hello"));
+    }
+
+    @Test
     void throwsForMalformedArithmeticExpression() {
         Message toolUse = messageWithToolUse(
                 toolUseBlock("call_1", "calculator", Map.of("expression", "2 + (3")));
