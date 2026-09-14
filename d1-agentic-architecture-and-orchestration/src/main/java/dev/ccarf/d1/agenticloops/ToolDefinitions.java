@@ -49,9 +49,9 @@ public class ToolDefinitions {
     Tool webSearch = Tool.builder()
         .name("web_search")
         .description("""
-            Call this when the user asks about current events, recent news, or any 
-            fact you don't already know or that may have changed since your training 
-            cutoff — do not guess or rely on memory for time-sensitive information. 
+            Call this when the user asks about current events, recent news, or any \
+            fact you don't already know or that may have changed since your training \
+            cutoff — do not guess or rely on memory for time-sensitive information. \
             Searches the web for a query and returns mock results (stub - no real network call).""")
         .inputSchema(Tool.InputSchema.builder()
             .properties(Tool.InputSchema.Properties.builder()
@@ -68,10 +68,10 @@ public class ToolDefinitions {
     Tool calculator = Tool.builder()
         .name("calculator")
         .description("""
-            Call this whenever the answer requires arithmetic, especially 
-            multi-step expressions, large numbers, or a calculation chained from a 
-            value you just looked up — do not compute the result yourself from memory,
-            since manual arithmetic is error-prone. Evaluates a basic arithmetic expression 
+            Call this whenever the answer requires arithmetic, especially \
+            multi-step expressions, large numbers, or a calculation chained from a \
+            value you just looked up — do not compute the result yourself from memory, \
+            since manual arithmetic is error-prone. Evaluates a basic arithmetic expression \
             and returns the numeric result.""")
         .inputSchema(Tool.InputSchema.builder()
             .properties(Tool.InputSchema.Properties.builder()
