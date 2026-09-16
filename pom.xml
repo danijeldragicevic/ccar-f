@@ -28,7 +28,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- Official Anthropic Java SDK: https://github.com/anthropics/anthropic-sdk-java -->
-    <anthropic.version>2.34.0</anthropic.version>
+    <anthropic.version>2.63.0</anthropic.version>
     <junit.version>5.11.4</junit.version>
     <exec-plugin.version>3.5.0</exec-plugin.version>
   </properties>

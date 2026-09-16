@@ -19,6 +19,7 @@ import com.anthropic.models.messages.Message;
 import com.anthropic.models.messages.MessageCreateParams;
 import com.anthropic.models.messages.MessageParam;
 import com.anthropic.models.messages.Model;
+import com.anthropic.models.messages.OutputTokensDetails;
 import com.anthropic.models.messages.RefusalStopDetails;
 import com.anthropic.models.messages.ServerToolUsage;
 import com.anthropic.models.messages.StopReason;
@@ -193,6 +194,7 @@ class SequentialToolCallLoopTest {
         return Usage.builder()
                 .inputTokens(1)
                 .outputTokens(1)
+                .outputTokensDetails((OutputTokensDetails) null)
                 .cacheCreation((CacheCreation) null)
                 .cacheCreationInputTokens(0L)
                 .cacheReadInputTokens(0L)

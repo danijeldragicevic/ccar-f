@@ -7,8 +7,10 @@ import com.anthropic.client.AnthropicClientAsync;
 import com.anthropic.core.ClientOptions;
 import com.anthropic.services.blocking.BetaService;
 import com.anthropic.services.blocking.CompletionService;
+import com.anthropic.services.blocking.FileService;
 import com.anthropic.services.blocking.MessageService;
 import com.anthropic.services.blocking.ModelService;
+import com.anthropic.services.blocking.SkillService;
 
 // Minimal implementation of AnthropicClient that only implements the messages() method.
 final class StubAnthropicClient implements AnthropicClient {
@@ -50,6 +52,16 @@ final class StubAnthropicClient implements AnthropicClient {
 
     @Override
     public BetaService beta() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public FileService files() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public SkillService skills() {
         throw new UnsupportedOperationException();
     }
 
