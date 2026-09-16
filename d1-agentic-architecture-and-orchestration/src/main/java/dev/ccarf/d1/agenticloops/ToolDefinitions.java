@@ -28,8 +28,8 @@ public class ToolDefinitions {
 
     System.out.println("Tools registered on the request: "
         + params.tools().orElseThrow().size());
-    System.out.println("- " + calculator.name() + ": " + calculator.description());
-    System.out.println("- " + webSearch.name() + ": " + webSearch.description());
+    System.out.println("- " + calculator.name() + ": " + calculator.description().orElse(""));
+    System.out.println("- " + webSearch.name() + ": " + webSearch.description().orElse(""));
     System.out.println("Client ready for model " + Config.modelMain()
         + " (" + client.getClass().getSimpleName() + "), no request sent yet.");
   }
