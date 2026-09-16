@@ -1,18 +1,5 @@
 package dev.ccarf.d1.subagentinvocationandcontextpassing;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.anthropic.client.AnthropicClient;
-import com.anthropic.client.okhttp.AnthropicOkHttpClient;
-import com.anthropic.models.messages.Message;
-import com.anthropic.models.messages.MessageCreateParams;
-import com.anthropic.models.messages.MessageParam;
-import com.anthropic.models.messages.StopReason;
-import com.anthropic.models.messages.TextBlock;
-
-import dev.ccarf.common.Config;
-
 /**
  * Exercise 1.3.3
  * Design a structured output format that separates a finding's content from
@@ -22,28 +9,32 @@ import dev.ccarf.common.Config;
  * is. Keeping these separate is what lets a later synthesis subagent
  * attribute every claim back to a specific source, instead of receiving
  * pre-flattened prose it has no way to cite - the exact failure mode this
- * design exists to prevent. To see the format actually produced by an
- * agent (not just hand-built), the web-search subagent below is instructed
- * to report its findings in a parseable line format and its response is
- * parsed straight into {@link Finding} records.
+ * design exists to prevent.
  */
 public class StructuredFindingFormat {
 
-  private static final String FIELD_SEPARATOR = " :: ";
-
-  static final String WEB_SEARCH_SUBAGENT_SYSTEM_PROMPT = """
-      You are a web-search subagent in a hub-and-spoke multi-agent research \
-      system. You have no memory of any other conversation and no access to \
-      the coordinator's context beyond what is explicitly included in this \
-      prompt - subagent isolation means nothing is inherited. Your only job \
-      is to research the subtopic assigned below and report your findings.
-
-      Respond with exactly one line per finding, in this exact format, with \
-      no other commentary: <claim> :: <source_url> :: <confidence 0.0-1.0>""";
-
   /**
    * A single finding reported by a research subagent - content and metadata
-   * kept as separate fields rather than folded into one string.
+   * kept as separate fields rather than folded into one string, so
+   * provenance survives being passed on to a synthesis subagent.
+   *
+   * @param claim        a short factual statement, reported by the
+   *                     web-search subagent, or null if this finding came
+   *                     from document analysis instead
+   * @param analysis     a longer analytical statement, reported by the
+   *                     document-analysis subagent, or null if this finding
+   *                     came from web search instead
+   * @param sourceUrl    the web source for this finding, or null unless
+   *                     retrievedBy is the web-search subagent
+   * @param documentName the document this finding was drawn from, or null
+   *                     unless retrievedBy is the document-analysis subagent
+   * @param pageNumber   the page within documentName, or null unless
+   *                     retrievedBy is the document-analysis subagent
+   * @param confidence   the subagent's self-reported confidence in this
+   *                     finding, in [0.0, 1.0]
+   * @param retrievedBy  which subagent produced this finding - one of the
+   *                     names {@link SubagentDefinitions#getSubagentDefinitions()}
+   *                     returns, e.g. "web_search_agent"
    */
   public record Finding(
       String claim,
@@ -57,96 +48,37 @@ public class StructuredFindingFormat {
 
   public static void main(String[] args) {
 
-    // Finding webSearchFinding = new Finding(
-    //     "Global solar capacity grew 32% year-over-year in 2024.",
-    //     "This growth is attributed to falling panel costs rather than new subsidy programs.",
-    //     "https://example.com/renewables/solar-2024",
-    //     "Global Renewable Energy Outlook 2024",
-    //     17,
-    //     0.9,
-    //     "web_search_agent");
+    Finding webSearchFinding = exampleWebSearchFinding();
+    Finding documentAnalysisFinding = exampleDocumentAnalysisFinding();
 
-    // Finding documentAnalysisFinding = new Finding(
-    //     "Global solar capacity grew 32% year-over-year in 2024.",
-    //     "The report attributes most of this growth to falling panel costs "
-    //         + "rather than new subsidy programs.",
-    //     null,
-    //     "Global Renewable Energy Outlook 2024",
-    //     17,
-    //     0.75,
-    //     "document_analysis_agent");
-
-    // System.out.println("[hand-built Findings, illustrating the shape]");
-    // System.out.println(webSearchFinding);
-    // System.out.println(documentAnalysisFinding);
-
-    AnthropicClient client = AnthropicOkHttpClient.fromEnv();
-    List<Finding> findings = invokeWebSearchSubagent(client, "Solar power adoption trends");
-
-    System.out.println("\n[Findings parsed from the web-search subagent's response]");
-    findings.forEach(System.out::println);
+    System.out.println(webSearchFinding);
+    System.out.println(documentAnalysisFinding);
   }
 
-  /**
-   * Invokes the web-search subagent for a subtopic and parses its response
-   * straight into structured {@link Finding} records - this is the format
-   * "in use," not just declared.
-   *
-   * @param client   the Anthropic client to send the request through
-   * @param subtopic the subtopic to research
-   * @return one Finding per line the subagent reported
-   */
-  static List<Finding> invokeWebSearchSubagent(AnthropicClient client, String subtopic) {
-    MessageCreateParams params = MessageCreateParams.builder()
-        .model(Config.modelWorker())
-        .maxTokens(Config.maxTokens())
-        .system(WEB_SEARCH_SUBAGENT_SYSTEM_PROMPT)
-        .messages(List.of(MessageParam.builder()
-            .role(MessageParam.Role.USER)
-            .content("Your assigned subtopic: " + subtopic)
-            .build()))
-        .build();
-
-    Message response = client.messages().create(params);
-    StopReason stopReason = response.stopReason().get();
-
-    if (stopReason.equals(StopReason.END_TURN)) {
-      return parseFindings(response);
-    }
-
-    throw new IllegalStateException("Unhandled stop_reason: " + stopReason);
-  }
-
-  // Parses one Finding per non-blank response line.
-  private static List<Finding> parseFindings(Message response) {
-    String text = response.content().stream()
-        .flatMap(block -> block.text().stream())
-        .map(TextBlock::text)
-        .collect(Collectors.joining("\n"));
-
-    return text.lines()
-        .map(String::trim)
-        .filter(line -> !line.isEmpty())
-        .map(StructuredFindingFormat::parseFinding)
-        .toList();
-  }
-
-  private static Finding parseFinding(String line) {
-    String[] parts = line.split(FIELD_SEPARATOR, 3);
-    if (parts.length != 3) {
-      throw new IllegalArgumentException("Malformed finding line (expected \"claim"
-          + FIELD_SEPARATOR + "source_url" + FIELD_SEPARATOR + "confidence\"): " + line);
-    }
-
-    double confidence;
-    try {
-      confidence = Double.parseDouble(parts[2].trim());
-    } catch (NumberFormatException e) {
-      throw new IllegalArgumentException(
-          "Malformed confidence value \"" + parts[2].trim() + "\" in line: " + line, e);
-    }
-
-    return new Finding(parts[0].trim(), null, parts[1].trim(), null, null, confidence,
+  // A hand-built Finding shaped like one the web-search subagent would report:
+  // content lives in claim, metadata points at a web source.
+  static Finding exampleWebSearchFinding() {
+    return new Finding(
+        "Global solar capacity grew 32% year-over-year in 2024.",
+        null,
+        "https://example.com/renewables/solar-2024",
+        null,
+        null,
+        0.9,
         "web_search_agent");
+  }
+
+  // A hand-built Finding shaped like one the document-analysis subagent would
+  // report: content lives in analysis, metadata points at a document/page.
+  static Finding exampleDocumentAnalysisFinding() {
+    return new Finding(
+        null,
+        "The report attributes most of this growth to falling panel costs "
+            + "rather than new subsidy programs.",
+        null,
+        "Global Renewable Energy Outlook 2024",
+        17,
+        0.75,
+        "document_analysis_agent");
   }
 }
