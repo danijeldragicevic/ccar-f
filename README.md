@@ -7,7 +7,7 @@ Hands-on exercises in Java, written while studying for Anthropic's
 
 ## Prerequisites
 
--   **Java 21+** and **Maven 3.9+**
+-   **Java 25+** and **Maven 3.9+**
 -   An Anthropic API key, exported as an environment variable
 
 ### `ANTHROPIC_API_KEY` (required)

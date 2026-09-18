@@ -44,7 +44,7 @@ installed first (`-am` builds it in the same reactor instead).
 
 ## Structure & conventions
 
-- Java 21, Maven multi-module. One module per exam domain
+- Java 25, Maven multi-module. One module per exam domain
   (`d1-agentic-architecture-and-orchestration`, etc.), plus `common` for
   shared, non-secret configuration.
 - Package per module: `dev.ccarf.d1`, `dev.ccarf.d2`, ... ; shared code in
