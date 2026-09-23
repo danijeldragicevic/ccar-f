@@ -66,25 +66,10 @@ mvn -pl common test
 mvn -pl common test -Dtest=ConfigTest
 ```
 
-## Why this code isn't DRY (on purpose)
+## Exercise structure
 
-Within a curriculum section, exercises are implemented as separate,
-self-contained classes — one class, one `main()`, runnable on its own — even
-when that means near-identical code (a loop skeleton, a tool-execution
-switch, a hand-written expression parser) is copied verbatim across several
-files. That's a deliberate choice, not an oversight:
-
--   Each class is a checkpoint in a guided build exercise. Someone working
-    through the same exercise should be able to open exactly the file for the
-    step they're stuck on and read it top-to-bottom, without having to jump to
-    a shared helper defined three files away to see the whole picture.
--   A later step's file typically repeats everything the earlier step's file
-    did, plus whatever that step adds — so diffing two consecutive files in a
-    section shows you exactly what changed conceptually between them.
-
-The one place this repo _does_ deduplicate is test support code (shared stub
-clients/services): that's plumbing for testing, not part of what a given
-exercise is teaching, so it's factored out like it would be anywhere else.
+Every exercise is a self-contained class with its own `main()`, so it can be
+read top-to-bottom and run on its own.
 
 Each module has its own `README.md` describing how its package structure
 maps to the curriculum it covers — see
