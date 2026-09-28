@@ -3,10 +3,10 @@ package dev.ccarf.d1.agenticloops;
 import java.util.Map;
 
 import com.anthropic.client.AnthropicClient;
-import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.anthropic.models.messages.MessageCreateParams;
 import com.anthropic.models.messages.Tool;
 
+import dev.ccarf.common.AnthropicClients;
 import dev.ccarf.common.Config;
 
 /**
@@ -19,7 +19,7 @@ public class ToolDefinitions {
 
   public static void main(String[] args) {
 
-    AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+    AnthropicClient client = AnthropicClients.fromDotEnv();
 
     Tool calculator = getCalculator();
     Tool webSearch = getWebSearch();

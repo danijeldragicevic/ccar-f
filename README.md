@@ -8,28 +8,27 @@ Hands-on exercises in Java, written while studying for Anthropic's
 ## Prerequisites
 
 -   **Java 25+** and **Maven 3.9+**
--   An Anthropic API key, exported as an environment variable
+-   An Anthropic API key, in a `.env` file at the repository root
 
-### `ANTHROPIC_API_KEY` (required)
+### `.env` with `ANTHROPIC_API_KEY` (required)
 
 Get a key from the [Anthropic Console](https://console.anthropic.com/settings/keys)
 (sign in or create an account, then **Create Key**).
 
-The exercises never read the key from a file. The Anthropic SDK's
-`AnthropicOkHttpClient.fromEnv()` reads it straight from the environment, so the
-only setup is one exported variable:
+Create a file named `.env` in the repository root (next to the root
+`pom.xml`) with one line:
 
 ```bash
-# ~/.zshrc  (or ~/.bashrc)
-export ANTHROPIC_API_KEY="sk-ant-..."
+ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+`.env` is gitignored, so it is never committed.
 
 ## Configuration vs. secrets
 
 Non-secret settings (model ids, `max.tokens`, ...) live in
 `common/src/main/resources/ccarf.properties` and are read via
-`dev.ccarf.common.Config`. The `ANTHROPIC_API_KEY` secret is never put in that
-file — it stays an environment variable only (see above).
+`dev.ccarf.common.Config`. The API key never goes in that file, only in `.env`.
 
 ## Build and run
 

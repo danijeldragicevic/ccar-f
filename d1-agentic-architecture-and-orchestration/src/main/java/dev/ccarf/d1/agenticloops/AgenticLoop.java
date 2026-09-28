@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.anthropic.client.AnthropicClient;
-import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.anthropic.models.messages.Message;
 import com.anthropic.models.messages.MessageCreateParams;
 import com.anthropic.models.messages.MessageParam;
 import com.anthropic.models.messages.StopReason;
 
+import dev.ccarf.common.AnthropicClients;
 import dev.ccarf.common.Config;
 
 /**
@@ -23,7 +23,7 @@ public class AgenticLoop {
 
   public static void main(String[] args) {
 
-    AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+    AnthropicClient client = AnthropicClients.fromDotEnv();
     
     Message response = runLoop(client, "Say hello");
     response.content().stream()

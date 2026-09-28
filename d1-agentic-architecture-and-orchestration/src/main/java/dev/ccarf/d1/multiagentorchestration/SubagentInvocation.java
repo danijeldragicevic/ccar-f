@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.anthropic.client.AnthropicClient;
-import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.anthropic.models.messages.Message;
 import com.anthropic.models.messages.MessageCreateParams;
 import com.anthropic.models.messages.MessageParam;
 import com.anthropic.models.messages.StopReason;
 import com.anthropic.models.messages.TextBlock;
 
+import dev.ccarf.common.AnthropicClients;
 import dev.ccarf.common.Config;
 
 /**
@@ -45,7 +45,7 @@ public class SubagentInvocation {
 
   public static void main(String[] args) {
 
-    AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+    AnthropicClient client = AnthropicClients.fromDotEnv();
     
     String researchGoal = "Produce a comprehensive research report on renewable energy technologies.";
     String subtopic = "Solar power adoption trends";

@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.anthropic.client.AnthropicClient;
-import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.anthropic.core.JsonValue;
 import com.anthropic.models.messages.ContentBlockParam;
 import com.anthropic.models.messages.Message;
@@ -16,6 +15,7 @@ import com.anthropic.models.messages.ToolResultBlockParam;
 import com.anthropic.models.messages.ToolUseBlock;
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import dev.ccarf.common.AnthropicClients;
 import dev.ccarf.common.Config;
 
 /**
@@ -29,7 +29,7 @@ public class ToolExecutionLoop {
 
   public static void main(String[] args) {
 
-    AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+    AnthropicClient client = AnthropicClients.fromDotEnv();
 
     Message response = runLoop(client, "What is 12 * (3 + 4)? Also search for the latest news about AI and summarize into one short sentence.");
     response.content().stream()

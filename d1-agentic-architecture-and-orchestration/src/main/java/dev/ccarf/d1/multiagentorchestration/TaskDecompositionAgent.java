@@ -4,13 +4,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.anthropic.client.AnthropicClient;
-import com.anthropic.client.okhttp.AnthropicOkHttpClient;
 import com.anthropic.models.messages.Message;
 import com.anthropic.models.messages.MessageCreateParams;
 import com.anthropic.models.messages.MessageParam;
 import com.anthropic.models.messages.StopReason;
 import com.anthropic.models.messages.TextBlock;
 
+import dev.ccarf.common.AnthropicClients;
 import dev.ccarf.common.Config;
 
 /**
@@ -40,7 +40,7 @@ public class TaskDecompositionAgent {
 
   public static void main(String[] args) {
 
-    AnthropicClient client = AnthropicOkHttpClient.fromEnv();
+    AnthropicClient client = AnthropicClients.fromDotEnv();
 
     List<String> subtopics = decompose(client, "The future of renewable energy technologies");
     subtopics.forEach(subtopic -> System.out.println("- " + subtopic));
